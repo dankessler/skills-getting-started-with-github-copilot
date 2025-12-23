@@ -142,3 +142,58 @@ footer {
   padding: 20px;
   color: #666;
 }
+
+/* Participants section styling */
+.participants {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.participants-title {
+  margin: 0 0 8px;
+  color: #1a237e;
+  font-weight: bold;
+  font-size: 0.95rem;
+  font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", cursive;
+  letter-spacing: 0.3px;
+}
+
+.participants-list {
+  list-style: none; /* we'll draw our own markers */
+  margin: 0;
+  padding: 0;
+}
+
+.participants-list li {
+  margin: 4px 0;
+  padding: 6px 10px;
+  background-color: #f1f4ff;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  color: #333;
+  font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", cursive;
+  position: relative;
+  padding-left: 28px; /* room for the custom marker */
+}
+
+/* fun balloon bullet */
+.participants-list li::before {
+  content: "🎈";
+  position: absolute;
+  left: 8px;
+  top: 6px;
+}
+
+/* subtle playful tilt */
+.participants-list li:nth-child(odd) {
+  transform: rotate(-0.6deg);
+}
+.participants-list li:nth-child(even) {
+  transform: rotate(0.6deg);
+}
+
+.participants-empty {
+  color: #777;
+  font-style: italic;
+}
