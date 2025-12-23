@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const messageDiv = document.getElementById("message");
 
   // Helper to render participants section
-  function renderParticipants(participants = []) {
+  function renderParticipants(activityName, participants = []) {
     if (!participants.length) {
       return `
         <div class="participants">
@@ -18,7 +18,23 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="participants">
         <p class="participants-title"><strong>Participants</strong></p>
         <ul class="participants-list">
-          ${participants.map((p) => `<li>${p}</li>`).join("")}
+          ${participants
+            .map(
+              (p) => `
+            <li data-activity="${activityName}" data-email="${p}">
+              <span class="participant-email">${p}</span>
+              <button
+                type="button"
+                class="delete-participant"
+                aria-label="Remove ${p} from ${activityName}"
+                data-activity="${activityName}"
+                data-email="${p}"
+              >
+                ×
+              </button>
+            </li>`
+            )
+            .join("")}
         </ul>
       </div>
     `;
@@ -27,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
-      const response = await fetch("/activities");
+      const response = await fetch("/activities", { cache: "no-store" });
       const activities = await response.json();
 
       // Clear loading message and reset dropdown
@@ -46,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          ${renderParticipants(details.participants)}
+          ${renderParticipants(name, details.participants)}
         `;
 
         activitiesList.appendChild(activityCard);
@@ -84,8 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
-        // Optionally refresh the activities to update participants and spots left
-        fetchActivities();
+        await fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -103,6 +118,40 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
     }
+  });
+
+  // Handle participant removal via delete icon
+  activitiesList.addEventListener("click", async (event) => {
+    const button = event.target.closest(".delete-participant");
+    if (!button) return;
+
+    const { activity, email } = button.dataset;
+
+    try {
+      const response = await fetch(
+        `/activities/${encodeURIComponent(activity)}/participants/${encodeURIComponent(email)}`,
+        { method: "DELETE" }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        messageDiv.textContent = result.message;
+        messageDiv.className = "success";
+        await fetchActivities();
+      } else {
+        messageDiv.textContent = result.detail || "Failed to remove participant.";
+        messageDiv.className = "error";
+      }
+    } catch (error) {
+      messageDiv.textContent = "Failed to remove participant. Please try again.";
+      messageDiv.className = "error";
+      console.error("Error removing participant:", error);
+    }
+
+    messageDiv.classList.remove("hidden");
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, 5000);
   });
 
   // Initialize app
